@@ -106,7 +106,7 @@ class Hcaptcha(Selenium):
     def callback_solving(self):
         logger.debug("[CallBacks] Using 2captcha callback")
         site_key = self.driver.find_element(By.XPATH, '//*[@data-sitekey]').get_attribute('data-sitekey')
-        solver = self.twocaptcha.TwoCaptcha('43ae3d042c5b8d795b1036847cbbdd86')  # noqa
+        solver = self.callback_module.TwoCaptcha('<your_api_key>')
         result = solver.hcaptcha(site_key, self.driver.current_url)
         response = result['code']
         self.driver.execute_script(f"arguments[0].setAttribute('data-hcaptcha-response', '{response}');", self.HOOK_FRAME)
