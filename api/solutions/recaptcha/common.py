@@ -123,7 +123,7 @@ class RecaptchaUtils(Selenium):
         """Feature to use any callbacks like 2captcha, nopecha, etc"""
         logger.debug("[CallBacks] Using 2captcha callback")
         site_key = self.driver.find_element(By.XPATH, '//*[@data-sitekey]').get_attribute('data-sitekey')
-        two_solver = self.callback_module.TwoCaptcha('43ae3d042c5b8d795b1036847cbbdd86')
+        two_solver = self.callback_module.TwoCaptcha('<your_api_key>')
         result = two_solver.recaptcha(site_key, self.driver.current_url)
         response = result['code']
         self.driver.execute_script(f'document.getElementById("g-recaptcha-response").innerHTML = "{response}";')
