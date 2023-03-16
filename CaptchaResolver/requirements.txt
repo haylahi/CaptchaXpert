@@ -1,0 +1,11 @@
+waitress==2.1.2
+flask==2.0.2
+onnxruntime==1.11.1
+opencv-python>=4.7.0.68
+numpy>=1.23.0
+requests>=2.28.2
+loguru==0.6.0
+PyYAML==6.0
+ultralytics==8.0.21
+ultralyticsplus==0.0.23
+pillow>=9.2.0
