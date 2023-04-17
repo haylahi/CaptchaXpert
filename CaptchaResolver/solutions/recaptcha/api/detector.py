@@ -22,6 +22,7 @@ class Model:
             self.label_dir = label_dir
         self.models = {}
         self.labels = {}
+        self.class_names = []
         self._load()
 
     def _load_classes(self):
@@ -29,40 +30,40 @@ class Model:
             with open(os.path.join(self.label_dir, mn), 'r') as f:
                 self.labels[mn.replace('.yaml', '')] = yaml.safe_load(f)
 
-    def _load(self):
+    def _load_models(self):
         for mn in os.listdir(self.model_dir):
-            net = cv2.dnn.readNetFromONNX(os.path.join(self.model_dir, mn))
-            self.models[mn.replace('.onnx', '')] = net
+            model = YOLO(os.path.join(self.model_dir, mn))
+            model.overrides['iou'] = 0.45
+            model.overrides['agnostic_nms'] = False
+            model.overrides['max_det'] = 50
+            model.overrides['conf'] = 0.2
+            self.models[mn.removesuffix('.pt')] = model
 
+    def _load(self):
         self._load_classes()
-        # load yolov8
-        model = YOLO('ultralyticsplus/yolov8s')
-        model.overrides['iou'] = 0.45  # NMS IoU threshold
-        model.overrides['agnostic_nms'] = False  # NMS class-agnostic
-        model.overrides['max_det'] = 1000  # maximum number of detections per image
+        self._load_models()
 
-        self.models['yolov8'] = {'model': model, 'threshold': 0.15}
+    def choose_net(self, label):
+        for k in self.labels.keys():
+            if self.labels[k].get('classes') is not None:
+                if label in self.labels[k]['classes']:
+                    self.class_names = self.labels[k]['classes']
+                    return self.models[k]
 
-    def predict(self, img, version=8):
+    def predict(self, img, net, conf=0.2):
         """
-        Predict yolo classes either yolo_v3 or yolov6 or yolov8
+        Predict yolo classes for yolov8
         :param img: np_array in cv2 format
-        :param version: specify yolo version (3, 6 or 8)
+        :param net: deep neural network
+        :param conf: confidence for object detection
         :return: {'classes': [cls, n], 'boxes': [[x, y, x, y], n], 'scores': [float, n]}
         """
 
-        model = self.models[f'yolov{version}']
-        net = model['model']
-        class_names = self.labels['yolo']['classes']
-        class_names = [x.replace(' ', '_') for x in class_names]
-        threshold = model.get('threshold')
-        if version == 8:
-            net.overrides['conf'] = threshold  # NMS confidence threshold
-            results = net.predict(img)
-            cls = [class_names[int(x)] for x in results[0].boxes.cls]
-            scores = [float(x) for x in results[0].boxes.conf]
-            boxes = [[int(x) for x in box] for box in list(results[0].boxes.xyxy)]
-            return {'classes': cls, 'boxes': boxes, 'scores': scores}
+        results = net.predict(img, conf=conf, verbose=False)
+        cls = [self.class_names[int(x)] for x in results[0].boxes.cls]
+        scores = [float(x) for x in results[0].boxes.conf]
+        boxes = [[int(x) for x in box] for box in list(results[0].boxes.xyxy)]
+        return {'classes': cls, 'boxes': boxes, 'scores': scores}
 
 
 if __name__ == '__main__':
