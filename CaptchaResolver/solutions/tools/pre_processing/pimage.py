@@ -212,3 +212,61 @@ def remove_frame(img, frame_color=255):
     if (x1 != 0) or (y1 != 0) or (x2 != img.shape[1] - 1) or (y2 != img.shape[0] - 1):
         return img[y1 + 1: y2 - 1, x1 + 1: x2 - 1]
     return img
+
+
+def draw_segmentation(img, segment, color=(255, 0, 0), thickness=1):
+    """
+    Draw a segmentation mask outline on top of an image.
+
+    Args:
+        img (np.ndarray): The input image as a numpy array of shape (H, W, C).
+        segment (list): The segmentation mask as a numpy array of shape (H, W).
+        color (tuple): The color used for the segmentation overlay as a tuple of (R, G, B) values (default: red).
+        thickness (int): thickness of line
+    """
+    cv2.drawContours(img, segment, -1, color, thickness)
+
+
+def fill_mask(img, segment, color=(255, 0, 0)):
+    """
+    Draw a segmentation mask on top of an image.
+
+    Args:
+        img (np.ndarray): The input image as a numpy array of shape (H, W, C).
+        segment (list): The segmentation mask as a numpy array of shape (H, W).
+        color (tuple): The color used for the segmentation overlay as a tuple of (R, G, B) values (default: red).
+    """
+    cv2.fillPoly(img, segment, color)
+
+
+def draw_mask(img, segment, color=(255, 0, 0), thickness=1):
+    """
+    Draw a segmentation mask on top of an image.
+
+    Args:
+        img (np.ndarray): The input image as a numpy array of shape (H, W, C).
+        segment (list): The segmentation mask as a numpy array of shape (H, W).
+        color (tuple): The color used for the segmentation overlay as a tuple of (R, G, B) values (default: red).
+        thickness (int): thickness of line
+    """
+    cv2.drawContours(img, segment, 0, color, thickness)
+
+
+def show_segmentations(img, segments, color=(255, 0, 0), thickness=1):
+    """
+        Visualize a segmentation mask on top of an image.
+
+        Args:
+            img (np.ndarray): The input image as a numpy array of shape (H, W, C).
+            segments (list[list]): List of segmentation masks as a numpy array of shape (H, W).
+            color (tuple): The color used for the segmentation overlay as a tuple of (R, G, B) values (default: red).
+            thickness (int): thickness of line
+
+        Returns:
+            np.ndarray: The output image with the segmentation overlay.
+        """
+    new_image = img.copy()
+    for segment in segments:
+        draw_segmentation(new_image, segment, color, thickness)
+    show(new_image)
+    return new_image

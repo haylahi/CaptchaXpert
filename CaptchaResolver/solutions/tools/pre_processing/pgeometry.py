@@ -1,6 +1,8 @@
-import numpy as np
 import random
+from typing import Any
+
 import cv2
+import numpy as np
 
 
 class Rectangle:
@@ -100,22 +102,57 @@ class Rectangle:
         :param position: move output window there
         :return: None
         """
-        _img = img.copy()
+        nimg = img.copy()
 
         for r, rect in enumerate(rects):
             color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-            cv2.rectangle(_img, rect[:2], (rect[0] + rect[2], rect[1] + rect[3]), color, thickness)
+            cv2.rectangle(nimg, rect[:2], (rect[0] + rect[2], rect[1] + rect[3]), color, thickness)
             print(f"Rect draw: {rects[r - 1]} -> {rect}")
             if r % i - 1 == 0 or i == 1:
-                cv2.imshow("View", _img)
+                cv2.imshow("View", nimg)
                 if position:
                     cv2.moveWindow("View", *position)
                 cv2.waitKey(0)
                 cv2.destroyAllWindows()
+
+    def in_point(self, point) -> bool:
+        x1, y1, x2, y2 = self.xyxy()
+        x, y = point
+        return True if x1 < x < x2 and y1 < y < y2 else False
+
+    def in_mask(self, mask):
+        x1, y1, x2, y2 = self.xyxy()
+        mask_contour = cv2.approxPolyDP(mask, epsilon=1, closed=True)
+        is_inside = all([cv2.pointPolygonTest(mask_contour, (x1, y1), measureDist=False) >= 0,
+                         cv2.pointPolygonTest(mask_contour, (x1, y2), measureDist=False) >= 0,
+                         cv2.pointPolygonTest(mask_contour, (x2, y1), measureDist=False) >= 0,
+                         cv2.pointPolygonTest(mask_contour, (x2, y2), measureDist=False) >= 0])
+        return is_inside
+
+    def boundary_lines(self, step=1) -> tuple[list[tuple[int, Any]], list[tuple[Any, int]], list[tuple[int, Any]], list[tuple[Any, int]]]:
+        """
+        Returns:
+            l1: top-left to top-right corner
+            l2: top-right to bottom-right corner
+            l3: bottom-left to bottom-right corner
+            l4: top-left to bottom-left corner
+        """
+        x1, y1, x2, y2 = self.xyxy()
+        l1 = [(x, y1) for x in range(x1, x2, step)]
+        l2 = [(x2, y) for y in range(y1, y2, step)]
+        l3 = [(x, y2) for x in range(x1, x2, step)]
+        l4 = [(x1, y) for y in range(y1, y2, step)]
+        return l1, l2, l3, l4
+
+    @staticmethod
+    def draw_boundary_lines(img, l1, l2, l3, l4, color=255, thickness=1):
+        [cv2.circle(img, p, 0, color=color, thickness=thickness) for p in l1]
+        [cv2.circle(img, p, 0, color=color, thickness=thickness) for p in l2]
+        [cv2.circle(img, p, 0, color=color, thickness=thickness) for p in l3]
+        [cv2.circle(img, p, 0, color=color, thickness=thickness) for p in l4]
 
 
 def rect_overlap(rect1, rect2):
     x1_1, y1_1, x2_1, y2_1 = rect1
     x1_2, y1_2, x2_2, y2_2 = rect2
     return (x1_1 < x2_2) and (x2_1 > x1_2) and (y1_1 < y2_2) and (y2_1 > y1_2)
-
