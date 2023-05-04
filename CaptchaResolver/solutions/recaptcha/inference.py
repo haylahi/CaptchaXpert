@@ -1,6 +1,4 @@
 import logging
-import time
-from collections import Counter
 
 import numpy as np
 
@@ -24,11 +22,11 @@ def predict(img, label, grid):
         imgs = plist.transpose(imgs)
         imgs = sum(imgs, [])
         net = detector.choose_net_3x3(label)
-
+        print(net, label)
         # Inference and get top 3 predictions
         scores = []
         for img in imgs:
-            detection = detector.predict(img, net, verbose=False)
+            detection = detector.predict(img, net, conf=0.25, verbose=False)
             if label == 'motorcycle' and 'bicycle' in detection['classes']:
                 detection['classes'][detection['classes'].index('bicycle')] = 'motorcycle'
             if label in detection['classes']:
@@ -115,6 +113,4 @@ def predict(img, label, grid):
                         break
             results.append(is_in)
 
-        rects = [c.rect for c, x in zip(coordinates, results) if x]
-        Rectangle.show(rects, img, thickness=4)
         return results
