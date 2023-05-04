@@ -168,5 +168,6 @@ TODO
 
 # Contact
 For any question about CaptchaXpert, feel free to contact me here
-Discord: https://discord.gg/BCfVDE4sv3
-Email: imuhammadzubair223@gmail.com
+
+- Discord: https://discord.gg/BCfVDE4sv3
+- Email: imuhammadzubair223@gmail.com
