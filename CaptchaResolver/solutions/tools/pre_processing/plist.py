@@ -89,7 +89,7 @@ def inS(string, list_, reverse=True) -> bool:
     return False
 
 
-def indexN(list_: list, value, n=1, reversed: bool = False) -> list or int or str:
+def indexN(list_: list, value, n=1, reversed: bool = False, output_if_not_found=None) -> list or int or str:
     """
     Find x without raising ValueError
     :param list_: list of items
@@ -113,7 +113,7 @@ def indexN(list_: list, value, n=1, reversed: bool = False) -> list or int or st
     if reversed:
         indexes = [len(list_) - 1 - y for y in indexes]
 
-    return indexes if n > 1 else indexes[0] if len(indexes) == 1 else 'Not Found'
+    return indexes if n > 1 else indexes[0] if len(indexes) == 1 else output_if_not_found
 
 
 def split(list_: list, n: int, reverse: bool = False) -> list:
