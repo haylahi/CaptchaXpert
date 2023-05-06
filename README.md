@@ -87,7 +87,7 @@ Anyone can use this app to solve captcha images by sending http request to endpo
 - recaptcha
 - antibot
 
-### Valid data
+### Payloads
 - hCaptcha: `{'type': 'hcaptcha', 'images': list_of_base64_images, 'prompt': 'Please click each image containing a duck.'}`
 - reCaptcha: `{'type': 'recaptcha', 'images': list_of_base64_images, 'label': 'bus', grid: '3x3'}`
     - images is divided into 2 parts: `image or images`
@@ -101,12 +101,9 @@ Anyone can use this app to solve captcha images by sending http request to endpo
    
 ## Models
 - hCaptcha:
-    - path: `/solutions/hcaptcha/precompiled_solution/hcaptcha/datas/models`
-    - labels-path: `/solutions/hcaptcha/precompiled_solution/hcaptcha/datas/objects.yaml`
-    - reference: Credits to [QIN2DIM](https://github.com/QIN2DIM/hcaptcha-challenger/) for managing hcaptcha models
-    - updating-models: add model to `$path` and label to `labels-path`
-    - description: adding new models is not correctly written right now, it might overwrite the models when [QIN2DIM](https://github.com/QIN2DIM/hcaptcha-challenger/) changes objects.yaml
-                   but this will be fixed soon
+    - path: `openai/clip-vit-base-patch32`
+    - labels-path: `/solutions/hcaptcha/label_map.yaml`
+    - description: When new label come, inspect the possible antilabels for that class, and write all label and antilabel in label_map.yaml to update model
 - reCaptcha:
     - path: `/solutions/models`
     - labels-path: `/solutions/labels/objects.yaml`
