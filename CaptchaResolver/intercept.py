@@ -7,12 +7,16 @@ from datetime import datetime
 
 import cv2
 import numpy as np
+import yaml
 
 from solutions.tools.pre_processing import pimage, pconversion, plist
 from solutions.antibot.inference import predict as antibot_predictor
 from solutions.hcaptcha.inference import predict as hcaptcha_predictor
 from solutions.recaptcha.inference import predict as recaptcha_predictor
+from solutions.viefaucet.inference import predict as vie_predictor
 logger = logging.getLogger(__name__)
+with open('track.yaml', 'r') as tracker:
+    objects_to_track = yaml.safe_load(tracker)
 
 
 def intercept(data, debugger=True):
@@ -28,8 +32,14 @@ def intercept(data, debugger=True):
 
     start_time = time.time()
     results = {}
-
-    if data['type'] == 'antibot':
+    if data['type'] == 'vie_antibot':
+        images = [pconversion.base64_to_cv2(b64_str) for b64_str in data['images']]
+        images = [cv2.resize(img, (40, 40)).astype(np.float32) for img in images]
+        images = [cv2.cvtColor(img, cv2.COLOR_GRAY2RGB) for img in images]
+        images = [np.reshape(img, (1, 40, 40, 3)) for img in images]
+        response = [vie_predictor(img, scores=True)[0] for img in images]
+        results['response'] = [(x[0], str(x[1])) for x in response]
+    elif data['type'] == 'antibot':
         images = [pconversion.base64_to_cv2(b64_str) for b64_str in data['images']]
         # Initialize images
         images = [cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) for img in images]
@@ -70,12 +80,7 @@ def intercept(data, debugger=True):
         response = [antibot_predictor(img, scores=True)[0] for img in images]
         results['response'] = [(x[0], str(x[1])) for x in response]
     elif data['type'] == 'hcaptcha':
-        imgs = [pconversion.base64_to_cv2(img) for img in data['images']]
-        if imgs[0].shape[2] == 4:
-            imgs = [cv2.cvtColor(img, cv2.COLOR_RGBA2BGR) for img in imgs]
-            imgs = [pconversion.cv2_to_bytes(img) for img in imgs]
-        else:
-            imgs = [pconversion.base64_to_bytes(b64_str) for b64_str in data['images']]
+        imgs = [pconversion.base64_to_pil(img) for img in data['images']]
         results['response'] = hcaptcha_predictor(data['prompt'], imgs)
     elif data['type'] == 'recaptcha':
         if data.get('images') is not None:
@@ -88,8 +93,8 @@ def intercept(data, debugger=True):
         results['response'] = 'InvalidCaptchaType'
 
     if debugger:
-        if not results['response']:
-            storage_path = os.path.join(os.path.dirname(__file__), "debugger")
+        if not results['response'] or data.get('label') in objects_to_track['Objects']:
+            storage_path = os.path.join(os.path.dirname(__file__), "debugger", "json")
             os.makedirs(storage_path, exist_ok=True)
             data['datetime'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             if data['type'] == 'recaptcha':
@@ -101,5 +106,5 @@ def intercept(data, debugger=True):
             logger.info(f"Data is saved in {json_path}")
 
     end_time = time.time()
-    logger.info(f"Time: {round(end_time - start_time, 2)}s | Response: {'FAIL' if not results['response'] else 'SUCCESS'}")
+    logger.info(f"Time-Consumption: {round(end_time - start_time, 2)} | Response: {results}")
     return results
