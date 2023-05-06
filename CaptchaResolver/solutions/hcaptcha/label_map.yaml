@@ -1,0 +1,8 @@
+MAP:
+  apple: ["apple", "banana", "strawberry", "firebug"]
+  lemon: ["lemon", "banana", "strawberry", "sunflower"]
+  lighthouse: ["lighthouse", "tower", "chimney", "freeway", "house"]
+  electric scooter: ["electric scooter", "bicycle", "drone"]
+  piano: ["piano", "drum", "horn", "guitar"]
+  freeway: ["freeway", "steel mill", "grounds"]
+  roast chicken: ["roast chicken", "burger", "croissant", "fries"]
