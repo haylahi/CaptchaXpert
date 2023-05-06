@@ -158,7 +158,23 @@ solver.solve()
 ## TokenSolver
 TODO
 ## TestCases
-TODO
+Testcase module is in api directory
+
+To start testing out captcha solving, use command `py -m api.testcase`
+#### Arguments:
+- headless1: run the driver in headless way
+- headless2: run the driver in new headless way using `headless=new` option
+- no_of_tests: no of tests to perform
+- test: This can be 1, 2, 3 or 4 depending on task as explained below
+
+1. recaptcha_v2
+
+2. recaptcha_v2 on custom frame
+
+3. hcaptcha
+
+4. hcaptcha on custom frame"
+
 # Token Solver
 TODO
 
