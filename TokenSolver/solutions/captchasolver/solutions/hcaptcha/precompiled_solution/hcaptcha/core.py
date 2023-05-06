@@ -442,7 +442,7 @@ class HolyChallenger:
         results = response.json()['response']
 
         # Pass: Hit at least one object
-        if results is not None:
+        if results:
             mapped_result = list(zip(results, self.alias2locator))
             random.shuffle(mapped_result)
             for result, alias in mapped_result:
