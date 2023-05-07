@@ -18,14 +18,12 @@ class Detector:
     def __init__(self, model_dir=None, label_dir=None):
         if model_dir is None:
             self.model_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'models')
-            if not os.path.exists(self.model_dir):
-                os.mkdir(self.model_dir)
+            os.makedirs(self.model_dir, exist_ok=True)
         else:
             self.model_dir = model_dir
         if label_dir is None:
             self.label_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'labels')
-            if not os.path.exists(self.label_dir):
-                os.mkdir(self.label_dir)
+            os.makedirs(self.label_dir, exist_ok=True)
         else:
             self.label_dir = label_dir
         self.models = {}
