@@ -15,7 +15,7 @@ ASSETS = ['re-detector-v1.pt', 're-detector-v2.pt', 'yolov8s-seg.pt', 'crosswalk
 class Model:
     def __init__(self, model_dir=None, label_dir=None):
         if model_dir is None:
-            self.model_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'models', 'detectors')
+            self.model_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'models')
             if not os.path.exists(self.model_dir):
                 os.mkdir(self.model_dir)
         else:
@@ -77,11 +77,14 @@ class Model:
         self._load_models()
 
     def choose_net_3x3(self, label):
-        for k in self.labels.keys():
-            if self.labels[k].get('classes') is not None:
-                if label in self.labels[k]['classes']:
-                    self.class_names = self.labels[k]['classes']
-                    return self.models[k]
+        if label in self.labels['re-detector-v1']['classes']:
+            self.class_names = self.labels['re-detector-v1']['classes']
+            return self.models['re-detector-v1']
+        elif label in self.labels['re-detector-v2']['classes']:
+            self.class_names = self.labels['re-detector-v2']['classes']
+            return self.models['re-detector-v2']
+        else:
+            raise Exception
 
     def choose_net_4x4(self, label):
         net = self.models['yolov8s-seg']
