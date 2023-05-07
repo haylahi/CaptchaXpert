@@ -1,0 +1,9 @@
+# This file tells the debugger to which objects to track, I mean save their data for later processing to make ml model
+# for that new class
+
+Objects:
+  - bridge
+  - tractor
+  - boat
+  - chimney
+  - drum
