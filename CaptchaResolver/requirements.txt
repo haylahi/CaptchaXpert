@@ -1,5 +1,5 @@
 waitress==2.1.2
-flask==2.0.2
+flask
 onnxruntime==1.11.1
 opencv-python>=4.7.0.68
 numpy>=1.23.0
