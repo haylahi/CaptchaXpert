@@ -1,0 +1,7 @@
+selenium
+flask
+waitress
+requests
+loguru
+webdriver-manager
+seleniumbase
