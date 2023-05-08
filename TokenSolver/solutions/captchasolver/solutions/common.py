@@ -258,17 +258,8 @@ class Selenium:
 
     def scrollIntoView(self, element):
         """ Scroll to element """
-        global scrollX, scrollY
         logger.debug('[Selenium] Scrolled into element')
         self.driver.execute_script("arguments[0].scrollIntoView({ behavior: 'smooth', block: 'center'});", element)
-        for i in range(4):
-            time.sleep(1)
-            _scrollX = self.driver.execute_script("return window.scrollX")
-            _scrollY = self.driver.execute_script("return window.scrollY")
-            if (_scrollX != scrollX) or (_scrollY != scrollY):
-                scrollX, scrollY = _scrollX, _scrollY
-                break
-        ActionChains(self.driver).move_by_offset(-scrollX, -scrollY)
 
     def remove_element(self, element):
         """ Remove element from html document """

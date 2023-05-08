@@ -15,6 +15,7 @@ class GpCaptcha(Selenium):
 
         # Wait for gp captcha class
         self.wait.until(EC.presence_of_element_located((By.XPATH, '//div[contains(@id, "gpcaptcha")]')))
+        self.scrollIntoViewIfNeeded(self.driver.find_element(By.XPATH, '//div[contains(@id, "gpcaptcha")]'))
         # Original objects bytes
         content = {
             "car": "M499.991 168h-54.815l-7.854-20.944c-9.192-24.513-25.425-45.351-46.942-60.263S343.651 64 317.472 "
@@ -101,6 +102,7 @@ class GpCaptcha(Selenium):
             most_match.append(fuzz.partial_ratio(byte.lower(), content[label].lower()))
 
         if max(most_match) > 50:
+            self.delay.one_3()
             self.click_js((By.XPATH, f'(//div[@class="svg-padding"])[{argmax(most_match) + 1}]'))
             return True
         return False

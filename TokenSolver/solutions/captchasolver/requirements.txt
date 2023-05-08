@@ -3,4 +3,4 @@ selenium==4.8.0
 fuzzywuzzy==0.18.0
 loguru==0.6.0
 undetected-chromedriver==3.4.6
-webdriver-manager==3.8.2
+webdriver-manager==3.1.5.post4

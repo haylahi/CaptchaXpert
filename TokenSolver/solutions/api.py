@@ -1,21 +1,33 @@
 import logging
 import socket
 import time
-from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
 
 import requests
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support.wait import WebDriverWait
+from seleniumbase import Driver
 
 from .captchasolver import CaptchaSolver
 from .harvester import Harvester, CaptchaKindEnum
-from .tools.common.driver import *
-from .tools.pre_processing import pstrings
 
 logger = logging.getLogger(__name__)
-hcaptcha_solver = CaptchaSolver().setCaptchaTypeAsHcaptcha()
-recaptcha_solver = CaptchaSolver().setCaptchaTypeAsRecaptchaV2()
-pool = ThreadPoolExecutor()
+
+from selenium.common.exceptions import (
+    TimeoutException, ElementNotInteractableException, ElementNotVisibleException,
+    ElementNotSelectableException, ElementClickInterceptedException, StaleElementReferenceException, NoSuchElementException,
+    NoSuchAttributeException, JavascriptException, InvalidArgumentException, InvalidSelectorException, InvalidSessionIdException,
+    NoSuchCookieException, NoSuchWindowException, NoSuchFrameException, NoAlertPresentException, UnexpectedAlertPresentException,
+    MoveTargetOutOfBoundsException, WebDriverException
+)
+
+SELENIUM_EXCEPTIONS = (TimeoutException, ElementNotInteractableException, ElementNotVisibleException,
+                       ElementNotSelectableException, ElementClickInterceptedException, StaleElementReferenceException,
+                       NoSuchElementException,
+                       NoSuchAttributeException, JavascriptException, InvalidArgumentException, InvalidSelectorException,
+                       InvalidSessionIdException,
+                       NoSuchCookieException, NoSuchWindowException, NoSuchFrameException, NoAlertPresentException,
+                       UnexpectedAlertPresentException,
+                       MoveTargetOutOfBoundsException, WebDriverException)
 
 
 def get_free_port():
@@ -28,25 +40,32 @@ def get_free_port():
 
 
 class TokenAPI:
-    def __init__(self, captcha_type, url, data_sitekey, proxy=None, timeout=120):
+    def __init__(self, captcha_type, domain, data_sitekey, executor, proxy=None, timeout=120, visibility=False):
         self.host = '127.0.0.1'
         self.port = get_free_port()
-        self.domain = pstrings.Grep(url).domain()
+        self.domain = domain
         self.site_key = data_sitekey
         self.harvester_server = None
-        self.type = captcha_type
         self.timeout = timeout
+        self.executor = executor
+
+        self.type = captcha_type
         if self.type == 'recaptcha':
             self.type += '-v2'
 
         self.init_server()
+
         host_rules = f'MAP {self.domain} {self.host}:{self.port}'
-        args = [f'--host-rules={host_rules}', '--headless=new']
-        self.driver = create_driver(proxy, driver_executable_path=ChromeDriverManager().install(), arguments=args)
+        args = [f'--host-rules={host_rules}']
+
+        self.driver = Driver(uc=True, page_load_strategy='none', headless2=not visibility, proxy=proxy, extra_args=args)
         self.driver.maximize_window()
         self.wait = WebDriverWait(self.driver, timeout)
-        hcaptcha_solver.driver = recaptcha_solver.driver = self.driver
-        hcaptcha_solver.wait = recaptcha_solver.wait = self.wait
+
+        self.recaptcha_solver = CaptchaSolver(image_getting_method='screenshot').setCaptchaTypeAsRecaptchaV2()
+        self.hcaptcha_solver = CaptchaSolver(image_getting_method='screenshot').setCaptchaTypeAsHcaptcha()
+        self.hcaptcha_solver.driver = self.recaptcha_solver.driver = self.driver
+        self.hcaptcha_solver.wait = self.recaptcha_solver.wait = self.wait
 
     def init_server(self):
         harvester_server = Harvester(host=self.host, port=self.port)
@@ -64,7 +83,7 @@ class TokenAPI:
     def error_handler(func, *args, **kwargs):  # noqa
         def wrapper(self, *args, **kwargs):  # noqa
             try:
-                res = func(self)  # noqa
+                res = func(self, *args, **kwargs)  # noqa
             except Exception as e:
                 logger.error(e, exc_info=True)
             else:
@@ -79,21 +98,29 @@ class TokenAPI:
         logger.info("Making Token")
         try:
             self.driver.get(f"http://{self.domain}")
-            captcha_solver = recaptcha_solver if self.type == 'recaptcha-v2' else hcaptcha_solver
+            captcha_solver = self.recaptcha_solver if self.type == 'recaptcha-v2' else self.hcaptcha_solver
             while True:
                 if captcha_solver.solve() or requests.get(f"http://{self.host}:{self.port}/{self.domain}/tokens").json():
                     return requests.get(f"http://{self.host}:{self.port}/{self.domain}/tokens").json()[0]
                 else:
                     self.driver.refresh()
         except SELENIUM_EXCEPTIONS:
-            return False
+            return 'WEBDRIVER_EXCEPTION'
 
     @error_handler
-    def fetch_token(self):
-        future = pool.submit(self._fetch_token)
+    def fetch_token(self, is_token_processed):
+        future = self.executor.submit(self._fetch_token)
         for i in range(self.timeout):
+            if is_token_processed.is_set():
+                return 'TIMEOUT_EXCEPTION'
             if future.done():
-                return future.result()
+                if future.result() == 'WEBDRIVER_EXCEPTION':
+                    return future.result()
+                elif future.result() is None:
+                    return 'HARVESTER_EXCEPTION'
+                else:
+                    is_token_processed.set()
+                    return f'Token-{future.result()}'
             time.sleep(1)
 
-        return 'TimeoutException'
+        return 'TIMEOUT_EXCEPTION'

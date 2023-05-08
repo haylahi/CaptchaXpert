@@ -28,11 +28,6 @@ user_id = md5((hex(uuid.getnode()) if uuid.getnode() == uuid.getnode()
 session_id = uuid.uuid4()
 
 log = logging.getLogger('harvester')
-sh = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter(
-    '%(name)s(%(levelname)s) [%(timestamp)s] [%(address)s] %(message)s')
-sh.setFormatter(formatter)
-log.addHandler(sh)
 
 
 class DomainInvalidException(Exception):

@@ -339,7 +339,7 @@ class HolyChallenger:
                 return self.CHALLENGE_SUCCESS
             except WebDriverException:
                 try:
-                    if self.next_locator is None:
+                    if callable(self.next_locator):
                         raise TimeoutException
                     WebDriverWait(ctx, 1, 0.1).until(
                         EC.visibility_of_element_located(

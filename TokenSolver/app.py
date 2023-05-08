@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 logging.getLogger('seleniumwire').setLevel(logging.ERROR)
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format='[%(asctime)s] %(name)s:%(levelname)s %(message)s',
     handlers=[logging.StreamHandler()]
 )
 
@@ -29,12 +29,13 @@ logger.info("Everything is ready")
 
 app = Flask(__name__)
 threads = {}
-thread_pool_executor = ThreadPoolExecutor()
+thread_pool_executor = ThreadPoolExecutor(max_workers=100)
 DEFAULTS = {
-    'url': 'MUST_BE_POSTED',
+    'domain': 'MUST_BE_POSTED',
     'sitekey': 'MUST_BE_POSTED',
     'type': 'MUST_BE_POSTED',
-    'webdriver': 'uc',
+    'visibility': False,
+    'enforcer': 1,
     'proxy': None,
     'timeout': 120,
 }
@@ -58,10 +59,14 @@ def captcha_resolver():
     for k, v in DEFAULTS.items():
         if k not in data.keys():
             data[k] = DEFAULTS[k]
-    if [x for x in data.values() if x == 'MUST_BE_POSTED']:
-        return "Bad Request => 403"
 
-    future = thread_pool_executor.submit(intercept, data)
+    missing_params = [k for k, v in data.items() if v == 'MUST_BE_POSTED']
+    if missing_params:
+        return {"response": "Bad Request", "traceback": f"Following parameters are missing: {' - '.join(missing_params)}"}
+
+    args = (data['type'], data['domain'], data['sitekey'], thread_pool_executor, data['proxy'], int(data['timeout']),
+            data['visibility'], data['enforcer'])
+    future = thread_pool_executor.submit(intercept, *args)
     thread_id = str(uuid.uuid4())
     threads[thread_id] = future
 
@@ -78,9 +83,9 @@ def get_response():
 
     thread_id = request.args.get('id')
     if threads.get(thread_id) is None:
-        return 'NoSuchThreadFoundException'
+        return {"response": "NoSuchThreadFoundException"}
     elif not threads[thread_id].done():
-        return 'Still solving'
+        return {"response": "Still solving"}
 
     response = threads[thread_id].result()
     logger.info(f"[GET] Response: {response} | ThreadID: {thread_id}")
@@ -90,5 +95,9 @@ def get_response():
 
 if __name__ == '__main__':
     import waitress as waitress
+
+    logging.getLogger("urllib3").setLevel(logging.ERROR)
+    logging.getLogger("selenium").setLevel(logging.ERROR)
+
     logger.info("Serving on http://127.0.0.1:5004 && http://0.0.0.0:5004")
     waitress.serve(app, listen='0.0.0.0:5004')

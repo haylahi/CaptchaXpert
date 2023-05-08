@@ -4,6 +4,7 @@ import shutil
 import undetected_chromedriver as uc
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
+
 from selenium.common.exceptions import (
     TimeoutException, ElementNotInteractableException, ElementNotVisibleException, \
     ElementNotSelectableException, ElementClickInterceptedException, StaleElementReferenceException, NoSuchElementException, \
@@ -114,7 +115,7 @@ def init_proxy_server(options, proxy):
         return plugin_dir
 
 
-def create_driver(proxy=None, driver_executable_path=None, arguments=None):
+def create_driver(proxy=None, driver_executable_path=None, arguments=None, headless2=False):
     options = Options()
     if proxy is not None:
         plugin_dir = init_proxy_server(options, proxy)

@@ -46,20 +46,20 @@ class CaptchaSolver(Selenium):
                  image_getting_method='screenshot', callback_at: int = None, host='http://127.0.0.1:5000',
                  hook_frame=None, challenge_frame=None, response_locator=None):
         """
-        CaptchaXpert captcha solving
-        :param driver: selenium webdriver
-        :param timeout: timeout captcha after given time
-        :param destroy_storage: destroy temporary storage after solving captcha, default=True
-        :param make_storage: make storage to save captcha content, default=True
-        :param make_storage_at: storage path, default=/temp_cache
-        :param image_getting_method: method to get image either using screenshot or request
-        :param callback_at: callback to human captcha solving service if retries == callback_at, you can implement you own
-                            callbacks in corresponding classes, I used twocaptcha, default=None
-        :param host: endpoint where your captcha-resolver app is hosted
-        :param hook_frame: solve captcha on custom hook frame, see test case2 or case4 for further info, useful if multiple captchas on single page
-        :param challenge_frame: solve captcha on custom challenge frame
-        :param response_locator: locator from where response of captcha is checked, useful if multiple captchas on single page
+        CaptchaSolver api for selenium webdriver
+        :param driver: selenium webdriver object
+        :param timeout: webdriver wait
+        :param destroy_storage: destroy temp storage after processing captcha
+        :param make_storage: make temp storage for captcha data during runtime
+        :param make_storage_at: storage location
+        :param image_getting_method: either "screenshot" or "request"
+        :param callback_at: when to do callback to paid captcha solving service, int
+        :param host: captcha images solver host, default: http://127.0.0.1:5000
+        :param hook_frame: custom hook frame in case of multiple captchas on single page
+        :param challenge_frame: custom challenge frame in case of multiple captchas on single page
+        :param response_locator: consider captcha solved as soon as possible this locator found
         """
+
         super().__init__()
         self.HOST = host
         self.CHALLENGE_RUNNING = False

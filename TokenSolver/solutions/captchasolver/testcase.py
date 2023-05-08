@@ -14,17 +14,19 @@ try:
 except ImportError:
     from CaptchaXpert import CaptchaSolver  # This is in our local package
 import logging
+from mytools.common.log import Handlers
 
+handlers = Handlers()
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG, handlers=[logging.StreamHandler()],
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', )
+logging.basicConfig(level=logging.DEBUG, handlers=[handlers.colored_stream()],
+                    format=handlers.format)
 
 logging.getLogger('selenium').setLevel(logging.INFO)
 logging.getLogger('urllib3').setLevel(logging.INFO)
 
 analyst = []
-HCAPTCHA_TEST_URL = "https://nopecha.com/demo/hcaptcha"
-RECAPTCHA_TEST_URL = "https://nopecha.com/demo/recaptcha"
+HCAPTCHA_TEST_URL = "https://nopecha.com/demo/hcaptcha#hard"
+RECAPTCHA_TEST_URL = "https://nopecha.com/demo/recaptcha#hard"
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-h1', '--headless1', action="store_true", help="Run selenium in headless chrome")
@@ -131,7 +133,7 @@ def run_hcaptcha_test_on_second_captcha():
 
 if __name__ == '__main__':
     driver = init_driver()
-    solver = CaptchaSolver(driver, destroy_storage=True, timeout=100, image_getting_method="screenshot")
+    solver = CaptchaSolver(driver, destroy_storage=True, timeout=100, image_getting_method="request")
     logger.info('Success initialized!')
 
     if pargs.test == 1:

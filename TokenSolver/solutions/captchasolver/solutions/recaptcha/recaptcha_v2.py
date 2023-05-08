@@ -50,7 +50,7 @@ class RecaptchaV2(RecaptchaUtils):
             script = 'return document.getElementsByClassName("rc-imageselect-tileselected").length === 0'
             logger.debug("Checking for new tiles")
             if self.driver.execute_script(script):
-                new_tiles_limit = 5
+                new_tiles_limit = 10
                 for t in range(new_tiles_limit):
                     self.wait_till_new_images([v['xpath'] for k, v in image_wrappers.items() if v['marked']], old_srcs)
                     self.delay.custom(2)    # explicit wait to ensure new images loaded
@@ -108,7 +108,7 @@ class RecaptchaV2(RecaptchaUtils):
                 if x:
                     self.click_js(image_wrappers[f'wrapper-{i}']['element'])
                     logger.debug(f"Marked {i}th image")
-                    self.delay.one10_one()
+                    self.delay.btw(0.1, 0.3)
 
             # Click verify button
             verify_btn = self.driver.find_element(By.ID, 'recaptcha-verify-button')
