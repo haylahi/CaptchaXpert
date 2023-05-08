@@ -176,8 +176,32 @@ To start testing out captcha solving, use command `py -m api.testcase`
 4. hcaptcha on custom frame"
 
 # Token Solver
-TODO
 
+This is the flask app used to get token of desired captcha so that it can be injected to bypass captcha anytime anywhere
+
+
+## Endpoints
+- `http://127.0.0.1:5004`
+- `http://0.0.0.0:5004`
+
+## Sample request
+
+1. Send http request on: `endpoint/submit`
+2. Sample data: `{'type': 'recaptcha', 'domain': 'nopecha.com', 'sitekey': '6Ld8NA8jAAAAAPJ_ahIPVIMc0C4q58rntFkopFiA', 'timeout': 300}`
+3. Loop over `endpoint/response` to get token as soon as it is processed
+
+### Payloads
+- hCaptcha: `{'type': 'hcaptcha', 'domain': 'nopecha.com', 'sitekey': 'b4c45857-0e23-48e6-9017-e28fff99ffb2', 'timeout': 300}`
+- reCaptcha: `{'type': 'recaptcha', 'domain': 'nopecha.com', 'sitekey': '6Ld8NA8jAAAAAPJ_ahIPVIMc0C4q58rntFkopFiA', 'timeout': 300}`
+#### Arguments
+- type: Determines the type of captcha to be solved
+- domain: Domain of target website
+- sitekey: Sitekey of target website
+- timeout: Maximum time allowed to solve captcha otherwise return TimeoutException
+- proxy: Proxy to use `(USER:PASS@IP:PORT)`
+- visibility: Whether to see solving captcha or not, headless or normal `Default: False` means do not show browser
+- enforcer: Launch multiple instances trying to solve the same captcha and whenever the captcha solves, eliminates all instance, it will increase
+            resource consumption as multiple browser spawned at a time, its value is integer, `Default: 1`
 
 # Contact
 For any question about CaptchaXpert, feel free to contact me here
