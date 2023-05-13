@@ -5,10 +5,11 @@ from threading import Thread
 
 import requests
 from selenium.webdriver.support.wait import WebDriverWait
-from seleniumbase import Driver
+from webdriver_manager.chrome import ChromeDriverManager
 
 from .captchasolver import CaptchaSolver
 from .harvester import Harvester, CaptchaKindEnum
+from .tools.common.driver import create_driver
 
 logger = logging.getLogger(__name__)
 
@@ -56,14 +57,16 @@ class TokenAPI:
         self.init_server()
 
         host_rules = f'MAP {self.domain} {self.host}:{self.port}'
-        args = [f'--host-rules={host_rules}']
+        args = [f'--host-rules={host_rules}', '--start-maximized']
 
-        self.driver = Driver(uc=True, page_load_strategy='none', headless2=not visibility, proxy=proxy, extra_args=args)
-        self.driver.maximize_window()
+        self.driver = create_driver(proxy, driver_executable_path=ChromeDriverManager().install(), arguments=args,
+                                    headless2=not visibility)
         self.wait = WebDriverWait(self.driver, timeout)
 
-        self.recaptcha_solver = CaptchaSolver(image_getting_method='screenshot').setCaptchaTypeAsRecaptchaV2()
-        self.hcaptcha_solver = CaptchaSolver(image_getting_method='screenshot').setCaptchaTypeAsHcaptcha()
+        self.recaptcha_solver = CaptchaSolver(image_getting_method='screenshot',
+                                              host="http://127.0.0.1:5000").setCaptchaTypeAsRecaptchaV2()
+        self.hcaptcha_solver = CaptchaSolver(image_getting_method='screenshot',
+                                             host="http://127.0.0.1:5000").setCaptchaTypeAsHcaptcha()
         self.hcaptcha_solver.driver = self.recaptcha_solver.driver = self.driver
         self.hcaptcha_solver.wait = self.recaptcha_solver.wait = self.wait
 
@@ -86,6 +89,7 @@ class TokenAPI:
                 res = func(self, *args, **kwargs)  # noqa
             except Exception as e:
                 logger.error(e, exc_info=True)
+                return f'EXCEPTION: {e}'
             else:
                 return res
             finally:
