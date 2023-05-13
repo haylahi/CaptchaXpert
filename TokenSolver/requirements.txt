@@ -4,4 +4,4 @@ waitress
 requests
 loguru
 webdriver-manager
-seleniumbase
+undetected-chromedriver
