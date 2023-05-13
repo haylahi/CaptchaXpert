@@ -58,9 +58,10 @@ class TokenAPI:
 
         host_rules = f'MAP {self.domain} {self.host}:{self.port}'
         args = [f'--host-rules={host_rules}', '--start-maximized']
+        if not visibility:
+            args.append('--headless=new')
 
-        self.driver = create_driver(proxy, driver_executable_path=ChromeDriverManager().install(), arguments=args,
-                                    headless2=not visibility)
+        self.driver = create_driver(proxy, driver_executable_path=ChromeDriverManager().install(), arguments=args)
         self.wait = WebDriverWait(self.driver, timeout)
 
         self.recaptcha_solver = CaptchaSolver(image_getting_method='screenshot',
